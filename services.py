@@ -1,18 +1,14 @@
 """Diagnostic service layer.
 
-The API layer only talks to this module, so replacing the placeholder colour
-heuristic with the trained plant-disease model is a change in ``classifier.py``
-(or pointing ``predict_leaf`` at real inference) rather than a change to every
-endpoint.
+The API layer only talks to this module; the trained plant-disease model
+lives behind ``predict_leaf`` in ``classifier.py``.
 
 ``diagnose_image`` normalises whatever the vision layer returns into the small
 contract the API depends on: a non-empty label and a confidence in the 0..1
 range.
 """
 
-from classifier import LowQualityImageError, predict_leaf
-
-MODEL_VERSION = "colour-heuristic-placeholder-v1"
+from classifier import MODEL_VERSION, LowQualityImageError, predict_leaf
 
 __all__ = [
     "DiagnosisUnavailableError",

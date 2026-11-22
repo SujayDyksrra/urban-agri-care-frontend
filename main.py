@@ -25,6 +25,15 @@ TREATMENTS_FILE = BASE_DIR / "treatments.json"
 
 app = FastAPI(title="Urban Agri-Care API")
 
+
+@app.on_event("startup")
+def load_vision_model():
+    # Load TensorFlow and the models before the first /diagnose request,
+    # so the first scan does not wait for them. Set WARM_UP_MODEL=0 to skip.
+    if os.environ.get("WARM_UP_MODEL", "1") != "0":
+        from classifier import warm_up
+        warm_up()
+
 # Development configuration.
 # Restrict origins before production deployment.
 app.add_middleware(

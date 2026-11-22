@@ -5,3 +5,5 @@ python-multipart
 openai
 pydantic
 python-dotenv
+numpy
+ai-edge-litert==2.4.0
