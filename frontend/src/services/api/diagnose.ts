@@ -43,17 +43,34 @@ const mimeTypes: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg
 export const mimeFor = (uri: string) => mimeTypes[uri.split('?')[0].split('.').pop()?.toLowerCase() ?? ''] ?? 'image/jpeg';
 
 /** Uploads the photo as multipart field `file`. React Native's FormData takes a { uri, name, type } file part. */
+// export async function diagnosePhoto(uri: string, signal?: AbortSignal): Promise<DiagnoseResult> {
+//   const form = new FormData();
+//   if (typeof document !== 'undefined') {
+//     // Web: the browser's FormData needs a real Blob (the photo is a data or blob URL).
+//     const blob = await (await fetch(uri)).blob();
+//     const type = blob.type || 'image/jpeg';
+//     form.append('file', blob, `leaf.${type.split('/')[1] === 'jpeg' ? 'jpg' : type.split('/')[1] || 'jpg'}`);
+//   } else {
+//     const name = uri.split('/').pop() || 'leaf.jpg';
+//     form.append('file', { uri, name, type: mimeFor(uri) } as unknown as Blob);
+//   }
+//   const timeout = Number(process.env.EXPO_PUBLIC_DIAGNOSE_TIMEOUT_MS) > 0 ? Number(process.env.EXPO_PUBLIC_DIAGNOSE_TIMEOUT_MS) : 30000;
+//   return adaptDiagnosis(await requestJson('/diagnose', { method: 'POST', body: form }, signal, timeout));
+// }
+
 export async function diagnosePhoto(uri: string, signal?: AbortSignal): Promise<DiagnoseResult> {
   const form = new FormData();
-  if (typeof document !== 'undefined') {
-    // Web: the browser's FormData needs a real Blob (the photo is a data or blob URL).
-    const blob = await (await fetch(uri)).blob();
-    const type = blob.type || 'image/jpeg';
-    form.append('file', blob, `leaf.${type.split('/')[1] === 'jpeg' ? 'jpg' : type.split('/')[1] || 'jpg'}`);
-  } else {
-    const name = uri.split('/').pop() || 'leaf.jpg';
-    form.append('file', { uri, name, type: mimeFor(uri) } as unknown as Blob);
-  }
+  const fileResponse = await fetch(uri);
+  const rawBlob = await fileResponse.blob();
+
+  const detected = (rawBlob.type || mimeFor(uri)).toLowerCase().split(';')[0];
+  const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+  const finalType = allowedTypes.has(detected) ? detected : 'image/jpeg';
+  const ext = finalType === 'image/png' ? 'png' : finalType === 'image/webp' ? 'webp' : 'jpg';
+
+  const blob = new Blob([rawBlob], { type: finalType });
+  form.append('file', blob, `leaf.${ext}`);
+
   const timeout = Number(process.env.EXPO_PUBLIC_DIAGNOSE_TIMEOUT_MS) > 0 ? Number(process.env.EXPO_PUBLIC_DIAGNOSE_TIMEOUT_MS) : 30000;
   return adaptDiagnosis(await requestJson('/diagnose', { method: 'POST', body: form }, signal, timeout));
 }

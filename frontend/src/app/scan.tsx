@@ -35,6 +35,7 @@ function LiveScan() {
       await update((data) => ({ ...data, diagnoses: [...data.diagnoses, diagnosis], guidance: guidance ? [...data.guidance.filter((item) => item.id !== guidance.id), guidance] : data.guidance }));
       if (!controller.signal.aborted) router.replace({ pathname: '/result', params: { id: diagnosis.id } });
     } catch (cause) {
+      console.error('[scan] save/navigate failed:', cause);
       if (controller.signal.aborted) return;
       setRunning(false);
       setError(cause instanceof ApiError ? cause.message : 'Could not save the result. Please retry.');

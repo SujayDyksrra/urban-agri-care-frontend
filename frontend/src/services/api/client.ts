@@ -25,6 +25,29 @@ export function errorForStatus(status: number, detail?: string): ApiError {
   return new ApiError(status >= 500 ? 'server' : 'http', detail ?? `Backend returned HTTP ${status}.`, status);
 }
 
+// export async function requestJson(path: string, init: RequestInit = {}, signal?: AbortSignal, timeout = timeoutMs): Promise<unknown> {
+//   if (!apiBaseUrl) throw new ApiError('configuration', 'Set EXPO_PUBLIC_API_BASE_URL to a phone-reachable backend URL.');
+//   const controller = new AbortController();
+//   let timedOut = false;
+//   const abort = () => controller.abort();
+//   signal?.addEventListener('abort', abort, { once: true });
+//   const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeout);
+//   try {
+//     const response = await fetch(`${apiBaseUrl}${path}`, { ...init, signal: controller.signal });
+//     const raw = await response.text();
+//     if (!response.ok) throw errorForStatus(response.status, errorDetail(raw));
+//     try { return JSON.parse(raw); } catch { throw new ApiError('non-json', 'Backend returned a non-JSON response.'); }
+//   } catch (error) {
+//     if (error instanceof ApiError) throw error;
+//     if (timedOut) throw new ApiError('timeout', 'The request timed out.');
+//     if (signal?.aborted) throw new ApiError('cancelled', 'Request cancelled.');
+//     throw new ApiError('network', 'Cannot reach the backend. Check the phone and server network.');
+//   } finally {
+//     clearTimeout(timer);
+//     signal?.removeEventListener('abort', abort);
+//   }
+// }
+
 export async function requestJson(path: string, init: RequestInit = {}, signal?: AbortSignal, timeout = timeoutMs): Promise<unknown> {
   if (!apiBaseUrl) throw new ApiError('configuration', 'Set EXPO_PUBLIC_API_BASE_URL to a phone-reachable backend URL.');
   const controller = new AbortController();
@@ -38,6 +61,7 @@ export async function requestJson(path: string, init: RequestInit = {}, signal?:
     if (!response.ok) throw errorForStatus(response.status, errorDetail(raw));
     try { return JSON.parse(raw); } catch { throw new ApiError('non-json', 'Backend returned a non-JSON response.'); }
   } catch (error) {
+    console.error('[api] fetch failed:', `${apiBaseUrl}${path}`, error);
     if (error instanceof ApiError) throw error;
     if (timedOut) throw new ApiError('timeout', 'The request timed out.');
     if (signal?.aborted) throw new ApiError('cancelled', 'Request cancelled.');

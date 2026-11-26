@@ -2,6 +2,7 @@
   "expo": {
     "name": "Urban Agri-Care",
     "slug": "urban-agri-care-mobile",
+    "scheme": "urban-agri-care-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
